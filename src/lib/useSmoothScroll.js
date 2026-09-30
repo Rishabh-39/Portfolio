@@ -43,8 +43,8 @@ export function useSmoothScroll() {
     const lenis = reduce
       ? null
       : new Lenis({
-          lerp: 0.32,
-          wheelMultiplier: 1.5,
+          lerp: 0.35,
+          wheelMultiplier: 1.7,
           smoothWheel: true,
           syncTouch: false,
         })
