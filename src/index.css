@@ -1,0 +1,149 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    box-sizing: border-box;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  html {
+    scroll-padding-top: calc(env(safe-area-inset-top, 0px) + 96px);
+  }
+  body {
+    @apply bg-cream text-ink font-sans antialiased;
+    font-feature-settings: 'ss01';
+  }
+  ::selection { background: #E0592A; color: #FBF8F2; }
+  :focus-visible { outline: 2px solid #E0592A; outline-offset: 3px; border-radius: 6px; }
+}
+
+@layer components {
+  /* Dot grid used as a faint technical texture */
+  .dot-grid {
+    background-image: radial-gradient(circle, rgba(22, 21, 19, 0.16) 1px, transparent 1.5px);
+    background-size: 14px 14px;
+  }
+  .dot-grid-fine {
+    background-image: radial-gradient(circle, rgba(22, 21, 19, 0.12) 0.8px, transparent 1.2px);
+    background-size: 9px 9px;
+  }
+  .dot-grid-light {
+    background-image: radial-gradient(circle, rgba(251, 248, 242, 0.18) 1px, transparent 1.5px);
+    background-size: 14px 14px;
+  }
+  .card {
+    @apply rounded-[22px] border border-line bg-paper shadow-soft;
+  }
+  .card-hover {
+    @apply transition-[transform,border-color] duration-300 ease-out hover:-translate-y-[3px] hover:border-[#CFC6B6];
+  }
+  .pixel-heading {
+    @apply font-pixel font-black uppercase leading-[0.86] tracking-[-0.01em];
+  }
+  .chip {
+    @apply inline-flex items-center rounded-full border border-line bg-cream/60 px-3 py-1 text-[13px] text-ink/80;
+  }
+}
+
+/* ---------- Scroll animations ----------
+   Short, light and triggered slightly before content reaches the screen, so
+   nothing is ever waiting to appear while you scroll. Uses animations + the
+   individual `translate` property so they never fight card hover effects. */
+@keyframes rise {
+  from { opacity: 0; translate: 0 12px; }
+  to   { opacity: 1; translate: 0 0; }
+}
+@keyframes line-up {
+  from { translate: 0 100%; }
+  to   { translate: 0 0; }
+}
+@keyframes fade { from { opacity: 0 } to { opacity: 1 } }
+
+.reveal { opacity: 0; }
+.reveal.is-visible { animation: rise .55s ease-out both; }
+
+.reveal-stagger > * { opacity: 0; }
+.reveal-stagger.is-visible > * { animation: rise .55s ease-out both; }
+.reveal-stagger.is-visible > *:nth-child(2) { animation-delay: 50ms; }
+.reveal-stagger.is-visible > *:nth-child(3) { animation-delay: 100ms; }
+.reveal-stagger.is-visible > *:nth-child(4) { animation-delay: 150ms; }
+.reveal-stagger.is-visible > *:nth-child(5) { animation-delay: 200ms; }
+.reveal-stagger.is-visible > *:nth-child(6) { animation-delay: 250ms; }
+
+.line-mask { display: block; overflow: hidden; overflow: clip; padding-bottom: .04em; margin-bottom: -.04em; }
+.line-mask > span { display: block; translate: 0 100%; }
+.is-visible .line-mask > span,
+.hero-in .line-mask > span { animation: line-up .7s cubic-bezier(.22, 1, .36, 1) both; }
+.is-visible .line-mask:nth-child(2) > span,
+.hero-in .line-mask:nth-child(2) > span { animation-delay: 70ms; }
+
+.hero-step { opacity: 0; animation: rise .6s ease-out both; }
+.hero-photo { opacity: 0; animation: fade .9s ease .2s both; }
+
+
+
+/* ---------- Section-to-section motion (scroll-driven) ----------
+   Where supported, elements animate in lockstep with the scrollbar: they
+   rise in as a section enters and ease back as you scroll away, in both
+   directions. The animation follows your scroll; it never moves the page. */
+@supports (animation-timeline: view()) {
+  .reveal,
+  .reveal.is-visible,
+  .reveal-stagger > *,
+  .reveal-stagger.is-visible > * {
+    opacity: 1;
+    animation: scroll-rise linear both;
+    animation-timeline: view();
+    animation-range: entry 0px entry 240px;
+    animation-delay: 0ms;
+  }
+  .reveal-stagger.is-visible > *:nth-child(n) { animation-delay: 0ms; }
+  .reveal-stagger.is-visible > *:nth-child(3n + 2),
+  .reveal-stagger > *:nth-child(3n + 2) { animation-range: entry 30px entry 270px; }
+  .reveal-stagger.is-visible > *:nth-child(3n + 3),
+  .reveal-stagger > *:nth-child(3n + 3) { animation-range: entry 60px entry 300px; }
+
+  /* headings: lines slide up as the heading scrolls into view */
+  .section-head { view-timeline-name: --head; }
+  .section-head .line-mask > span,
+  .is-visible.section-head .line-mask > span {
+    animation: line-up linear both;
+    animation-timeline: --head;
+    animation-range: entry 10% entry 100%;
+    animation-delay: 0ms;
+  }
+  .section-head .line-mask:nth-child(2) > span,
+  .is-visible.section-head .line-mask:nth-child(2) > span { animation-range: entry 25% cover 30%; animation-delay: 0ms; }
+}
+
+@keyframes scroll-rise {
+  from { opacity: 0; translate: 0 24px; }
+  to   { opacity: 1; translate: 0 0; }
+}
+
+/* the section you jumped to acknowledges the arrival */
+@keyframes pill-ping {
+  0%   { box-shadow: 0 0 0 0 rgba(224, 89, 42, .45); }
+  100% { box-shadow: 0 0 0 10px rgba(224, 89, 42, 0); }
+}
+.pill-ping { animation: pill-ping .9s ease-out 2; border-color: #E0592A; }
+
+/* Lenis smooth scrolling */
+html.lenis, html.lenis body { height: auto; }
+.lenis.lenis-smooth { scroll-behavior: auto !important; }
+.lenis.lenis-smooth [data-lenis-prevent] { overscroll-behavior: contain; }
+.lenis.lenis-stopped { overflow: hidden; }
+
+@keyframes blink { 0%, 60% { opacity: 1 } 61%, 100% { opacity: .15 } }
+.blink { animation: blink 1.6s steps(1) infinite; }
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .reveal, .reveal-stagger > *, .hero-step, .hero-photo { opacity: 1 !important; animation: none !important; translate: none !important; }
+  .line-mask > span { translate: none !important; animation: none !important; }
+  .pill-ping { animation: none; }
+  .blink { animation: none; }
+  *, *::before, *::after { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; }
+}
